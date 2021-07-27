@@ -1,10 +1,12 @@
 import requests
+import os
+from twilio.http.http_client import TwilioHttpClient
 from _datetime import datetime
 from twilio.rest import Client
 STOCK = "TSLA"
 COMPANY_NAME = "Tesla Inc"
 
-STOCK_API_KEY = "8B0ZA5GM35918S79"
+STOCK_API_KEY = os.getenv("STOCK_API_KEY")
 
 stock_params ={
     "function": "TIME_SERIES_DAILY",
@@ -25,8 +27,8 @@ if difference_percent > 0:
     emoji = "🔺"
 else:
     emoji = "🔻"
-if abs(difference_percent) > 0:
-    NEWS_API_KEY = 'c65a74bdbb2a4b74a27ef07e45edc944'
+if abs(difference_percent) > 5:
+    NEWS_API_KEY = os.getenv("NEWS_API_KEY")
     news_parameters = {
         "q": "tesla",
         "from": now.date(),
@@ -45,11 +47,11 @@ if abs(difference_percent) > 0:
         "brief_3": news_data[2]['description']
     }
 
-    account_sid = 'ACc74852565a8a262a1ee9e8f8d9852899'
-    auth_token = 'cfdecdf26c09fd59091bdd274750f344'
-
-    client = Client(account_sid, auth_token)
-
+    account_sid = os.getenv("account_sid")
+    auth_token = os.getenv("auth_token")
+    proxy_client = TwilioHttpClient()
+    proxy_client.session.proxies = {'https': os.environ['https_proxy']}
+    client = Client(account_sid, auth_token, http_client=proxy_client)
     message = client.messages \
         .create(
                 body=f"{COMPANY_NAME}: {emoji}{difference_percent}%\nHeadline:{news['headline_1']}\nBrief:{news['brief_1']}"
